@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/monitoring/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/APIGateway/APIGateway.csproj" />
+    <Project Path="src/Aspire.AppHost/Aspire.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/services/">
+    <Project Path="src/services/Catalog/Catalog.API/Catalog.API.csproj" />
+    <Project Path="src/services/Inventory/Inventory.API/Inventory.API.csproj" />
+    <Project Path="src/services/Order/Order.API/Order.API.csproj" />
+  </Folder>
+  <Folder Name="/src/shared/">
+    <Project Path="src/Aspire.ServiceDefaults/Aspire.ServiceDefaults.csproj" />
+    <Project Path="src/shared/Contracts/Contracts.csproj" />
+    <Project Path="src/shared/Kernel/Kernel.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>
