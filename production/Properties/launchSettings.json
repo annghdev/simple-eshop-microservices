@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "Docker Compose (Production All-In-One - No Debug)": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "apigateway": "StartWithoutDebugging",
+        "catalog": "StartWithoutDebugging",
+        "inventory": "StartWithoutDebugging",
+        "order": "StartWithoutDebugging",
+        "postgres": "StartWithoutDebugging",
+        "redis": "StartWithoutDebugging",
+        "rabbitmq": "StartWithoutDebugging",
+        "prometheus": "StartWithoutDebugging",
+        "grafana": "StartWithoutDebugging",
+        "loki": "StartWithoutDebugging",
+        "jaeger": "StartWithoutDebugging",
+        "tempo": "StartWithoutDebugging",
+        "postgres-exporter": "StartWithoutDebugging",
+        "redis-exporter": "StartWithoutDebugging"
+      }
+    }
+  }
+}

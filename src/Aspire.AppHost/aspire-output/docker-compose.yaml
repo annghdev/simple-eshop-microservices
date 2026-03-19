@@ -1,0 +1,225 @@
+services:
+  eshop-dashboard:
+    image: "mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest"
+    ports:
+      - "18888"
+    expose:
+      - "18889"
+      - "18890"
+    networks:
+      - "aspire"
+    restart: "always"
+  redis:
+    image: "docker.io/library/redis:8.2"
+    command:
+      - "-c"
+      - "redis-server --requirepass $$REDIS_PASSWORD"
+    entrypoint:
+      - "/bin/sh"
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    expose:
+      - "6379"
+    networks:
+      - "aspire"
+  rabbitmq:
+    image: "docker.io/library/rabbitmq:4.2-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
+    expose:
+      - "5672"
+      - "15672"
+      - "15692"
+    networks:
+      - "aspire"
+  postgres:
+    image: "docker.io/library/postgres:17.6"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    expose:
+      - "5432"
+    networks:
+      - "aspire"
+  catalog:
+    image: "${CATALOG_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${CATALOG_PORT}"
+      ConnectionStrings__catalogdb: "Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=catalogdb"
+      CATALOGDB_HOST: "postgres"
+      CATALOGDB_PORT: "5432"
+      CATALOGDB_USERNAME: "${POSTGRES_USER}"
+      CATALOGDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      CATALOGDB_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/catalogdb"
+      CATALOGDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/catalogdb"
+      CATALOGDB_DATABASENAME: "catalogdb"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      JAEGER_OTLP_ENDPOINT: "http://localhost:4317"
+      TEMPO_OTLP_ENDPOINT: "http://localhost:4319"
+      LOKI_ENDPOINT: "http://localhost:3100"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://eshop-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "catalog"
+    expose:
+      - "${CATALOG_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  inventory:
+    image: "${INVENTORY_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${INVENTORY_PORT}"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      ConnectionStrings__catalogdb: "Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=catalogdb"
+      CATALOGDB_HOST: "postgres"
+      CATALOGDB_PORT: "5432"
+      CATALOGDB_USERNAME: "${POSTGRES_USER}"
+      CATALOGDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      CATALOGDB_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/catalogdb"
+      CATALOGDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/catalogdb"
+      CATALOGDB_DATABASENAME: "catalogdb"
+      JAEGER_OTLP_ENDPOINT: "http://localhost:4317"
+      TEMPO_OTLP_ENDPOINT: "http://localhost:4319"
+      LOKI_ENDPOINT: "http://localhost:3100"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://eshop-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "inventory"
+    expose:
+      - "${INVENTORY_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  order:
+    image: "${ORDER_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${ORDER_PORT}"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      ConnectionStrings__catalogdb: "Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=catalogdb"
+      CATALOGDB_HOST: "postgres"
+      CATALOGDB_PORT: "5432"
+      CATALOGDB_USERNAME: "${POSTGRES_USER}"
+      CATALOGDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      CATALOGDB_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/catalogdb"
+      CATALOGDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/catalogdb"
+      CATALOGDB_DATABASENAME: "catalogdb"
+      JAEGER_OTLP_ENDPOINT: "http://localhost:4317"
+      TEMPO_OTLP_ENDPOINT: "http://localhost:4319"
+      LOKI_ENDPOINT: "http://localhost:3100"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://eshop-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "order"
+    expose:
+      - "${ORDER_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  apigateway:
+    image: "${APIGATEWAY_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${APIGATEWAY_PORT}"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      ConnectionStrings__commondb: "Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=commondb"
+      COMMONDB_HOST: "postgres"
+      COMMONDB_PORT: "5432"
+      COMMONDB_USERNAME: "${POSTGRES_USER}"
+      COMMONDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      COMMONDB_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/commondb"
+      COMMONDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/commondb"
+      COMMONDB_DATABASENAME: "commondb"
+      JAEGER_OTLP_ENDPOINT: "http://localhost:4317"
+      TEMPO_OTLP_ENDPOINT: "http://localhost:4319"
+      LOKI_ENDPOINT: "http://localhost:3100"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://eshop-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "apigateway"
+    expose:
+      - "${APIGATEWAY_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+networks:
+  aspire:
+    driver: "bridge"

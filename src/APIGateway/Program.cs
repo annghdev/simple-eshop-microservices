@@ -25,5 +25,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
+app.MapGet("/hello", () => "hello");
 
 app.Run();

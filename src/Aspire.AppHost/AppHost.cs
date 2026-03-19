@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // support to generate docker-compose.yaml and file .env
-//var docker = builder.AddDockerComposeEnvironment("eshop");
+builder.AddDockerComposeEnvironment("eshop");
 
 // setup dependencies
 const int redisHostPort = 56379;

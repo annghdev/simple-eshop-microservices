@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.Docker.Sdk">
+  <PropertyGroup Label="Globals">
+    <ProjectVersion>2.1</ProjectVersion>
+    <DockerTargetOS>Linux</DockerTargetOS>
+    <ProjectGuid>{6B0C7A8D-9E45-4B37-A870-FA52D2C8F3DE}</ProjectGuid>
+    <DockerComposeBaseFilePath>docker-compose</DockerComposeBaseFilePath>
+    <DockerComposeProjectName>eshop-dev</DockerComposeProjectName>
+    <DockerComposeDownArguments>--remove-orphans</DockerComposeDownArguments>
+    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerServiceName>apigateway</DockerServiceName>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include=".env" />
+    <None Include="docker-compose.yml" />
+    <None Include="Properties\launchSettings.json" />
+    <None Include="prometheus.yml" />
+    <None Include="README.md" />
+  </ItemGroup>
+</Project>

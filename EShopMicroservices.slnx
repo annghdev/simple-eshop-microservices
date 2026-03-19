@@ -17,6 +17,26 @@
   <Folder Name="/monitoring/tempo/">
     <File Path="monitoring/tempo/tempo.yml" />
   </Folder>
+  <Folder Name="/development/">
+    <Project Path="development/EShop.Development.Compose.dcproj">
+      <Build />
+    </Project>
+    <File Path="development/.env" />
+    <File Path="development/docker-compose.yml" />
+    <File Path="development/prometheus.yml" />
+    <File Path="development/README.md" />
+    <File Path="development/run-all.ps1" />
+  </Folder>
+  <Folder Name="/production/">
+    <Project Path="production/EShop.Production.Compose.dcproj">
+      <Build />
+    </Project>
+    <File Path="production/.env" />
+    <File Path="production/docker-compose.yml" />
+    <File Path="production/prometheus.yml" />
+    <File Path="production/README.md" />
+    <File Path="production/run-all.ps1" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".dockerignore" />
     <File Path="README.md" />
