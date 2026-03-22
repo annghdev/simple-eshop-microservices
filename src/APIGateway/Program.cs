@@ -103,4 +103,7 @@ app.MapReverseProxy();
 
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 
+//app.MapGet("/hello", () => "Ok")
+//    .RequireRateLimiting("sliding");
+
 app.Run();
