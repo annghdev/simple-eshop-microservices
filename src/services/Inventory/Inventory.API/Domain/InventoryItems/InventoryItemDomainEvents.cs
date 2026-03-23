@@ -6,10 +6,10 @@ public record StockReceived(Guid Id, int Quantity);
 public record StockAdjusted(Guid Id, int Quantity);
 public record StockTranfered(Guid Id, int Quantity, Guid ToWarehouseId);
 
-public record ReservationStarted(Guid Id, int Quantity, Guid OrderId);
+public record StockReserved(Guid Id, int Quantity, Guid OrderId);
 public record ReservationFailed(Guid Id, int Quantity, Guid OrderId);
-public record ReservationCommitted(Guid Id, int Quantity, Guid OrderId);
-public record ReservationReleased(Guid Id, int Quantity, Guid OrderId);
+public record StockCommitted(Guid Id, int Quantity, Guid OrderId);
+public record StockReleased(Guid Id, int Quantity, Guid OrderId);
 public record ReservationRestocked(Guid Id, int Quantity, Guid OrderId);
 
 public record WarehouseItemDeactivated(Guid Id);

@@ -1,7 +1,6 @@
 ﻿namespace Order.Domain;
 
-public record OrderInitialized(Order Order); // => Select Warehouses
-public record OrderCreated(Order Order); // => Build projection and publish OrderPlaced
+public record OrderInitialized(Order Order); // => Select Warehouses => Build projection and publish OrderPlaced
 public record OrderReserveFailed(Order Order); // => CancelOrder & add system note
 
 public record ShopConfirmedOrder(Guid OrderId, string ConfirmBy); // => Mark Confirmed => Publish OrderConfirmed

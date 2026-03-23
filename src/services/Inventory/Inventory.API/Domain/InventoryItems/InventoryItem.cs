@@ -75,18 +75,18 @@ public class InventoryItem
         Available = e.Quantity;
     }
 
-    public void Apply(ReservationStarted e)
+    public void Apply(StockReserved e)
     {
         Available -= e.Quantity;
         Reserved += e.Quantity;
     }
 
-    public void Apply(ReservationCommitted e)
+    public void Apply(StockCommitted e)
     {
         Reserved -= e.Quantity;
     }
 
-    public void Apply(ReservationReleased e)
+    public void Apply(StockReleased e)
     {
         Reserved -= e.Quantity;
         Available += e.Quantity;
