@@ -2,12 +2,14 @@
 
 namespace Order.IntegrationEvents;
 
+public interface IOrderIntegrationEvent : IIntegrationEvent;
+
 public record OrderPlaced(
     Guid OrderId,
     decimal Amount,
     string PaymentMethod,
-    List<ItemReservation> Items) : IIntegrationEvent; // ==> Reserve Inventory and Init Payment
-public record ItemReservation(Guid InventoryItemId, int Quantity) : IIntegrationEvent;
-public record OrderConfirmed(Guid OrderId) : IIntegrationEvent; // ==> Commit stock
-public record OrderCancelledBeforeConfirm(Guid OrderId) : IIntegrationEvent; // ==> Release stock
-public record OrderCancelledAfterConfirm(Guid OrderId) : IIntegrationEvent; // ==> Restock
+    List<ItemReservation> Items) : IOrderIntegrationEvent; // ==> Reserve Inventory and Init Payment
+public record ItemReservation(Guid InventoryItemId, int Quantity) : IOrderIntegrationEvent;
+public record OrderConfirmed(Guid OrderId) : IOrderIntegrationEvent; // ==> Commit stock
+public record OrderCancelledBeforeConfirm(Guid OrderId) : IOrderIntegrationEvent; // ==> Release stock
+public record OrderCancelledAfterConfirm(Guid OrderId) : IOrderIntegrationEvent; // ==> Restock

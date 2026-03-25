@@ -1,37 +1,77 @@
+using Inventory.IntegrationEvents;
 using JasperFx;
+using Kernel.Interfaces;
 using Marten.Events.Projections;
 using Scalar.AspNetCore;
 using Wolverine.Configuration;
 using Wolverine.ErrorHandling;
+using Wolverine.FluentValidation;
+using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseWolverine(opts =>
 {
+    opts.UseFluentValidation();
+
     opts.Policies.AutoApplyTransactions();
+
+    // Outbox
+    opts.Policies.UseDurableLocalQueues();
+    opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
 
     opts.Policies
         .OnException<ConcurrencyException>()
         .RetryWithCooldown(50.Milliseconds(), 250.Milliseconds(), 1.Seconds())
         .Then.MoveToErrorQueue();
 
-    // Outbox
-    opts.Policies.UseDurableLocalQueues();
+    opts.Policies.ConventionalLocalRoutingIsAdditive();
 
-    opts.MessagePartitioning
-    .ByMessage<IReservationEvent>(x => x.OrderId.ToString())
-    .PublishToPartitionedLocalMessaging("reservation", 4, topology =>
+    opts.AutoBuildMessageStorageOnStartup = AutoCreate.CreateOrUpdate;
+
+    // Local Queue config
+    opts.Publish(rule =>
     {
-        topology.MessagesImplementing<IReservationEvent>();
-
-        topology.MaxDegreeOfParallelism = PartitionSlots.Five;
-
-        topology.ConfigureQueues(queue =>
-        {
-            queue.TelemetryEnabled(true);
-        });
+        rule.MessagesImplementing<IDomainEvent>();
+        rule.ToLocalQueue("domain_events").Sequential();
     });
 
+    opts.MessagePartitioning
+        .ByMessage<IReservationEvent>(x => x.OrderId.ToString())
+        .PublishToPartitionedLocalMessaging("reservation", 4, topology =>
+        {
+            topology.MessagesImplementing<IReservationEvent>();
+
+            topology.MaxDegreeOfParallelism = PartitionSlots.Five;
+
+            topology.ConfigureQueues(queue =>
+            {
+                queue.TelemetryEnabled(true);
+            });
+        });
+    
+    // RabbitMQ config
+    var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq")!;
+
+    opts.UseRabbitMq(rabbitConnectionString)
+       .AutoProvision()
+       .ConfigureChannelCreation(c =>
+       {
+           c.PublisherConfirmationsEnabled = true;
+           c.PublisherConfirmationTrackingEnabled = true;
+           c.ConsumerDispatchConcurrency = 5;
+       });
+
+    opts.Publish(rule =>
+    {
+        rule.MessagesImplementing<IInventoryIntegrationEvent>();
+
+        rule.ToRabbitExchange("integration_events", exchange =>
+        {
+            exchange.ExchangeType = ExchangeType.Fanout;
+            exchange.IsDurable = true;
+        });
+    });
 });
 
 builder.AddServiceDefaults();
