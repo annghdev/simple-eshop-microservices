@@ -1,7 +1,7 @@
 using Catalog.IntegrationEvents;
 using JasperFx;
 using JasperFx.Core;
-using Kernel.Interfaces;
+using Kernel.Middlewares;
 using Marten;
 using Scalar.AspNetCore;
 using Wolverine;
@@ -86,6 +86,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseMiddleware<GlobalExceptionHandler>();
 
 app.MapWolverineEndpoints();
 

@@ -1,10 +1,12 @@
+using Contracts.Protos.InventoryStocks;
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
 using Kernel.Interfaces;
-using Contracts.Protos.InventoryStocks;
+using Kernel.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Order;
+using Order.GrpcServices;
 using Order.IntegrationEvents;
 using Scalar.AspNetCore;
 using Wolverine;
@@ -14,7 +16,6 @@ using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
-using Order.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseMiddleware<GlobalExceptionHandler>();
+
 app.MapWolverineEndpoints();
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 

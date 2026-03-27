@@ -1,12 +1,13 @@
+using Inventory.GrpcServices;
 using Inventory.IntegrationEvents;
 using JasperFx;
+using Kernel.Middlewares;
 using Marten.Events.Projections;
 using Scalar.AspNetCore;
 using Wolverine.Configuration;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;
-using Inventory.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -114,6 +115,9 @@ if (!app.Environment.IsDevelopment())
 {
     //app.UseHttpsRedirection();
 }
+
+app.UseMiddleware<GlobalExceptionHandler>();
+
 app.MapWolverineEndpoints();
 
 app.MapGet("/", () => Results.Redirect("scalar/v1"));

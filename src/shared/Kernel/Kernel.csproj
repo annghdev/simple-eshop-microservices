@@ -14,8 +14,4 @@
     <PackageReference Include="WolverineFx.RabbitMQ" Version="5.20.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Middlewares\" />
-  </ItemGroup>
-
 </Project>

@@ -1,3 +1,4 @@
+using Kernel.Middlewares;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.RateLimiting;
@@ -108,6 +109,9 @@ else
 }
 
 app.MapReverseProxy();
+
+app.UseMiddleware<GlobalExceptionHandler>();
+
 app.MapWolverineEndpoints();
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 
