@@ -1,4 +1,6 @@
-﻿namespace Order.Domain;
+﻿using Order.InternalCalls;
+
+namespace Order.Domain;
 
 public class Order
 {
@@ -12,6 +14,7 @@ public class Order
     public List<OrderItem> Items { get; set; } = [];
     public bool Paid { get; set; }
     public PaymentMedthod PaymentMethod { get; set; }
+    public ReservationStatus ReservationStatus { get; set; }
     public OrderStatus Status { get; set; }
 }
 

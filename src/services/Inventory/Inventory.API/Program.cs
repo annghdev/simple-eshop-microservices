@@ -1,14 +1,16 @@
 using Inventory.IntegrationEvents;
 using JasperFx;
-using Kernel.Interfaces;
 using Marten.Events.Projections;
 using Scalar.AspNetCore;
 using Wolverine.Configuration;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;
+using Inventory.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Wolverine + Marten
 
 builder.Host.UseWolverine(opts =>
 {
@@ -76,23 +78,30 @@ builder.Host.UseWolverine(opts =>
     });
 });
 
-builder.AddServiceDefaults();
-
-builder.Services.AddWolverineHttp();
-
 builder.Services.AddMarten(opts =>
 {
     opts.Connection(builder.Configuration.GetConnectionString("inventorydb")!);
     opts.Projections.Snapshot<InventoryItem>(SnapshotLifecycle.Inline);
 })
 .IntegrateWithWolverine();
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+builder.Services.AddWolverineHttp();
+
+#endregion
+
+#region Grpc
+builder.Services.AddGrpc();
+
+#endregion
+
+
+builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+app.MapGrpcService<InventoryStockGrpcHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -110,3 +119,5 @@ app.MapWolverineEndpoints();
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 
 app.Run();
+
+return await app.RunJasperFxCommands(args);

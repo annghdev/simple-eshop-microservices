@@ -91,4 +91,4 @@ app.MapWolverineEndpoints();
 
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 
-app.Run();
+return await app.RunJasperFxCommands(args);

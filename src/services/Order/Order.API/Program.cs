@@ -2,6 +2,7 @@ using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
 using Kernel.Interfaces;
+using Contracts.Protos.InventoryStocks;
 using Microsoft.EntityFrameworkCore;
 using Order;
 using Order.IntegrationEvents;
@@ -13,6 +14,7 @@ using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
+using Order.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +73,21 @@ builder.Host.UseWolverine(opts =>
 builder.Host.UseResourceSetupOnStartup();
 
 builder.AddServiceDefaults();
+
+var inventoryGrpcAddress = builder.Configuration.GetConnectionString("inventory") ?? "http://localhost:5002";
+
+#region GRPC
+
+builder.Services
+    .AddGrpcClient<InventoryStockGrpc.InventoryStockGrpcClient>(options =>
+    {
+        options.Address = new Uri(inventoryGrpcAddress);
+    })
+    .AddServiceDiscovery();
+
+builder.Services.AddScoped<IGetProductStocksCaller, GetProductStocksCaller>();
+
+#endregion
 
 builder.Services.AddWolverineHttp();
 // Add services to the container.

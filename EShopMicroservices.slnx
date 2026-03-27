@@ -46,14 +46,9 @@
     <Project Path="src/APIGateway/APIGateway.csproj" />
     <Project Path="src/Aspire.AppHost/Aspire.AppHost.csproj" />
   </Folder>
-  <Folder Name="/src/services/" />
-  <Folder Name="/src/services/Catalog/">
+  <Folder Name="/src/services/">
     <Project Path="src/services/Catalog/Catalog.API/Catalog.API.csproj" />
-  </Folder>
-  <Folder Name="/src/services/Inventory/">
     <Project Path="src/services/Inventory/Inventory.API/Inventory.API.csproj" />
-  </Folder>
-  <Folder Name="/src/services/Order/">
     <Project Path="src/services/Order/Order.API/Order.API.csproj" />
   </Folder>
   <Folder Name="/src/shared/">

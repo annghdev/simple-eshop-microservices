@@ -1,8 +1,15 @@
-﻿using Kernel.Models;
+using Kernel.Models;
 using Microsoft.AspNetCore.Mvc;
+using Wolverine.Http;
 
 namespace Inventory.Features.InventoryItems;
 
+/// <summary>
+/// Represents a query for retrieving items with optional filtering, sorting, and pagination parameters.
+/// </summary>
+/// <remarks>Use this record to specify criteria when requesting a filtered and paginated list of items. All
+/// filter and sort parameters are optional; omit them to retrieve all items. Pagination is controlled by the Page and
+/// PageSize properties.</remarks>
 public record GetItemsQuery
 {
     public Guid? ProductId { get; set; }
@@ -61,43 +68,28 @@ public static class GetItemsHandler
     }
 }
 
-public class GetItemsQueryParams
-{
-    [FromQuery]
-    public Guid? ProductId { get; set; }
-
-    [FromQuery]
-    public Guid? VariantId { get; set; }
-
-    [FromQuery]
-    public Guid? WarehouseId { get; set; }
-
-    [FromQuery]
-    public string? OrderBy { get; set; }
-
-    [FromQuery]
-    public bool IsDescending { get; set; }
-
-    [FromQuery]
-    public int Page { get; set; } = 1;
-
-    [FromQuery]
-    public int PageSize { get; set; } = 12;
-}
 public static class GetItemsEndpoint
 {
     [WolverineGet("inventory/items")]
-    public static async Task<PagedResult<InventoryItem>> GetAll([AsParameters] GetItemsQueryParams queryParams, IMessageBus bus)
+    public static async Task<PagedResult<InventoryItem>> GetItems(
+        [FromQuery] Guid? productId,
+        [FromQuery] Guid? variantId,
+        [FromQuery] Guid? warehouseId,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool isDescending,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IMessageBus bus)
     {
         var query = new GetItemsQuery
         {
-            ProductId = queryParams.ProductId,
-            VariantId = queryParams.VariantId,
-            WarehouseId = queryParams.WarehouseId,
-            OrderBy = queryParams.OrderBy,
-            IsDescending = queryParams.IsDescending,
-            Page = queryParams.Page,
-            PageSize = queryParams.PageSize
+            ProductId = productId,
+            VariantId = variantId,
+            WarehouseId = warehouseId,
+            OrderBy = orderBy,
+            IsDescending = isDescending,
+            Page = page <= 0 ? 1 : page,
+            PageSize = pageSize <= 0 ? 12 : pageSize
         };
 
         var result = await bus.InvokeAsync<PagedResult<InventoryItem>>(query);

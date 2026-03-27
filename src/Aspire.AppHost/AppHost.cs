@@ -51,7 +51,7 @@ var postgres = builder.AddPostgres(
 //var commonDb = postgres.AddDatabase("commondb");
 var catalogDb = postgres.AddDatabase("catalogdb");
 var inventoryDb = postgres.AddDatabase("inventorydb");
-//var orderDb = postgres.AddDatabase("orderdb");
+var orderDb = postgres.AddDatabase("orderdb");
 
 const string otlpEndpoint = "http://localhost:4317";
 const string tempoOtlpEndpoint = "http://localhost:4319";
@@ -64,9 +64,9 @@ var catalog = builder.AddProject<Projects.Catalog_API>("catalog")
     //.WithReference(redis).WaitFor(redis)
     .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithEndpoint("http", endpoint => endpoint.Port = 5001);
-    //.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
-    //.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
-    //.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
+//.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+//.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+//.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
 
 
 
@@ -77,20 +77,19 @@ var inventory = builder.AddProject<Projects.Inventory_API>("inventory")
     //.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint);
     .WithReference(inventoryDb).WaitFor(inventoryDb)
     .WithReference(rabbitMq).WaitFor(rabbitMq);
-    //.WithReference(redis).WaitFor(redis)
-    //.WithReference(rabbitMq).WaitFor(rabbitMq);
+//.WithReference(redis).WaitFor(redis)
+//.WithReference(rabbitMq).WaitFor(rabbitMq);
 
-//var order = builder.AddProject<Projects.Order_API>("order")
-//    .WithReference(redis)
-//    .WithReference(rabbitMq)
-//    .WithReference(catalogDb)
-//    .WithEndpoint("http", endpoint => endpoint.Port = 5003)
-//    .WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
-//    .WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
-//    .WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
-//    .WaitFor(catalogDb)
-//    .WaitFor(redis)
-//    .WaitFor(rabbitMq);
+var order = builder.AddProject<Projects.Order_API>("order")
+    //.WithReference(redis).WaitFor(redis)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(orderDb).WaitFor(orderDb)
+    .WithEndpoint("http", endpoint => endpoint.Port = 5003);
+    //.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+    //.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+    //.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
+
+
 
 //var gateway = builder.AddProject<Projects.APIGateway>("apigateway")
 //    .WithReference(redis)
