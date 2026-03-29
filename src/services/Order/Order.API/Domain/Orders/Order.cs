@@ -245,6 +245,7 @@ public class OrderItem
     public decimal OriginalAmount => UnitPrice * TotalQuantity;
     public decimal PromotionDiscount { get; set; }
     public decimal Amount => OriginalAmount - PromotionDiscount;
+    //[JsonIgnore]
     public List<ItemReservation> Reservations { get; set; } = [];
     public FreeItem? FreeItem { get; set; }
 }
