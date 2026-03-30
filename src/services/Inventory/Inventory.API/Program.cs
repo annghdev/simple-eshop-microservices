@@ -1,3 +1,6 @@
+using Contracts.Protos.InventoryStocks;
+using Contracts.Protos.OrderReservation;
+using Inventory.API.GrpcServices.Callers;
 using Inventory.GrpcServices;
 using Inventory.IntegrationEvents;
 using Inventory.Persistence;
@@ -93,6 +96,14 @@ builder.Services.AddWolverineHttp();
 
 #region Grpc
 builder.Services.AddGrpc();
+
+builder.Services
+    .AddGrpcClient<OrderReservationItemsGrpc.OrderReservationItemsGrpcClient>(options =>
+    {
+        options.Address = new Uri(builder.Configuration.GetConnectionString("order") ?? "https://localhost:7003");
+    })
+    .AddServiceDiscovery();
+builder.Services.AddScoped<IGetOrderReservationItemsCaller, GetOrderReservationItemsCaller>();
 #endregion
 
 builder.AddServiceDefaults();

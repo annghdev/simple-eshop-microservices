@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Order.IntegrationEvents;
 using Wolverine;
+using Wolverine.Http;
 
 namespace Order.Features.Orders;
 
@@ -11,8 +12,7 @@ public static class CancelOrderHandler
     public static async Task Handle(
         CancelOrderCommand cmd,
         OrderDbContext db,
-        IMessageBus bus,
-        CancellationToken ct)
+        IMessageBus bus)
     {
         var order = await db.Orders
             .Include(o => o.Logs)
@@ -29,5 +29,15 @@ public static class CancelOrderHandler
         {
             await bus.PublishAsync(new OrderCancelledAfterConfirm(order.Id));
         }
+    }
+}
+
+public static class CancelOrderEndpoint
+{
+    [WolverinePut("/orders/{id}/cancel")]
+    public static IResult Put(Guid id, CancelOrderCommand cmd, IMessageBus bus, CancellationToken ct)
+    {
+        bus.InvokeAsync(cmd, ct);
+        return Results.Ok();
     }
 }

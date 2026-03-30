@@ -1,6 +1,59 @@
-@Order.API_HostAddress = http://localhost:5295
+@host = http://localhost:5003
 
-GET {{Order.API_HostAddress}}/weatherforecast/
-Accept: application/json
+### Create order by CustomerId (matches Inventory seeded IDs)
+POST {{host}}/orders
+Content-Type: application/json
+X-Customer-Id: 11111111-2222-3333-4444-333333333333
 
-###
+{
+  "id": "22222222-3333-4444-5555-333333333333",
+  "customerName": "Nguyen Van A",
+  "address": "123 Seed Street, Ho Chi Minh City",
+  "phoneNumber": "0909123456",
+  "couponCode": "SALE10",
+  "items": [
+    {
+      "productId": "33333333-3333-3333-3333-333333333333",
+      "variantId": "44444444-4444-4444-4444-444444444444",
+      "quantity": 101
+    },
+    {
+      "productId": "33333333-3333-3333-3333-333333333333",
+      "variantId": "55555555-5555-5555-5555-555555555555",
+      "quantity": 1
+    }
+  ]
+}
+
+### Create order by GuestId (no coupon)
+POST {{host}}/orders
+Content-Type: application/json
+X-Guest-Id: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+
+{
+  "customerName": "Guest Checkout",
+  "address": "456 Guest Street, Ha Noi",
+  "phoneNumber": "0988000111",
+  "items": [
+    {
+      "productId": "33333333-3333-3333-3333-333333333333",
+      "variantId": "44444444-4444-4444-4444-444444444444",
+      "quantity": 2
+    }
+  ]
+}
+
+
+### Confirm Order
+PUT {{host}}/orders/22222222-3333-4444-5555-333333333333/confirm
+Content-Type: application/json
+
+### Cancel Order
+PUT {{host}}/orders/22222222-3333-4444-5555-333333333333/cancel
+Content-Type: application/json
+
+{
+  "orderId": "22222222-3333-4444-5555-333333333333",
+  "reason": "Customer requested cancellation",
+  "cancelBy": "Customer"
+}

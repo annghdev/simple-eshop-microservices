@@ -17,6 +17,9 @@ using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
+using Order.API.GrpcServices.Handlers;
+using Payment.IntegrationEvents;
+using Shipping.IntegrationEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +75,30 @@ builder.Host.UseWolverine(opts =>
             exchange.BindQueue("inventory.integration_events");
         });
     });
+
+    opts.Publish(rule =>
+    {
+        rule.MessagesImplementing<IPaymentIntegrationEvent>();
+
+        rule.ToRabbitExchange("integration_events", exchange =>
+        {
+            exchange.ExchangeType = ExchangeType.Fanout;
+            exchange.IsDurable = true;
+            exchange.BindQueue("order.integration_events");
+        });
+    });
+
+    opts.Publish(rule =>
+    {
+        rule.MessagesImplementing<IShippingIntegrationEvent>();
+
+        rule.ToRabbitExchange("integration_events", exchange =>
+        {
+            exchange.ExchangeType = ExchangeType.Fanout;
+            exchange.IsDurable = true;
+            exchange.BindQueue("order.integration_events");
+        });
+    });
 });
 
 builder.Host.UseResourceSetupOnStartup();
@@ -83,7 +110,7 @@ builder.AddServiceDefaults();
 var inventoryGrpcAddress = builder.Configuration.GetConnectionString("inventory") ?? "http://localhost:5002";
 
 #region GRPC
-
+builder.Services.AddGrpc();
 builder.Services
     .AddGrpcClient<InventoryStockGrpc.InventoryStockGrpcClient>(options =>
     {
@@ -92,9 +119,9 @@ builder.Services
     .AddServiceDiscovery();
 
 builder.Services.AddScoped<IGetProductStocksCaller, GetProductStocksCaller>();
-builder.Services.AddScoped<DataSeeder>();
-
 #endregion
+
+builder.Services.AddScoped<DataSeeder>();
 
 builder.Services.AddWolverineHttp();
 // Add services to the container.
@@ -104,7 +131,7 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-
+app.MapGrpcService<GetOrderReservationItemsGrpcHandler>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
