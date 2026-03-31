@@ -367,3 +367,5 @@ FodyWeavers.xsd
 /src/Aspire.AppHost/appsettings.Development.json
 /.cursor
 /production/.env
+/src/services/Payment/Payment.API/appsettings.Development.json
+/src/services/Shipping/Shipping.API/appsettings.Development.json
