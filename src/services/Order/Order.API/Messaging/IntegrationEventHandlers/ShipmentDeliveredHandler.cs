@@ -1,6 +1,6 @@
 ﻿using Kernel;
 using Microsoft.EntityFrameworkCore;
-using Order.IntegrationEvents;
+using Shipping.IntegrationEvents;
 
 namespace Order.Messaging;
 
@@ -8,8 +8,7 @@ public static class ShipmentDeliveredHandler
 {
     public static async Task Handle(
         ShipmentDelivered evt,
-        OrderDbContext db,
-        CancellationToken ct)
+        OrderDbContext db)
     {
         var order = await db.Orders
             .Include(o=>o.Logs)

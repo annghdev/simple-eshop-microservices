@@ -1,4 +1,5 @@
 @host = http://localhost:5003
+@payment = http://localhost:5004
 
 ### Create order by CustomerId (matches Inventory seeded IDs)
 POST {{host}}/orders
@@ -6,7 +7,7 @@ Content-Type: application/json
 X-Customer-Id: 11111111-2222-3333-4444-333333333333
 
 {
-  "id": "22222222-3333-4444-5555-333333333333",
+  "id": "22222222-3333-4444-5555-333333333335",
   "customerName": "Nguyen Van A",
   "address": "123 Seed Street, Ho Chi Minh City",
   "phoneNumber": "0909123456",
@@ -15,12 +16,12 @@ X-Customer-Id: 11111111-2222-3333-4444-333333333333
     {
       "productId": "33333333-3333-3333-3333-333333333333",
       "variantId": "44444444-4444-4444-4444-444444444444",
-      "quantity": 101
+      "quantity": 10
     },
     {
       "productId": "33333333-3333-3333-3333-333333333333",
       "variantId": "55555555-5555-5555-5555-555555555555",
-      "quantity": 1
+      "quantity": 10
     }
   ]
 }
@@ -57,3 +58,11 @@ Content-Type: application/json
   "reason": "Customer requested cancellation",
   "cancelBy": "Customer"
 }
+
+### Test Payment Sucess
+PUT {{payment}}/payments/test/success/22222222-3333-4444-5555-333333333334
+Content-Type: application/json
+
+### Test Payment Fail
+PUT {{payment}}/payments/test/fail/22222222-3333-4444-5555-333333333335
+Content-Type: application/json

@@ -2,7 +2,6 @@ using Contracts.Protos.InventoryStocks;
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
-using Kernel.Interfaces;
 using Kernel.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Order;
@@ -18,8 +17,6 @@ using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 using Order.API.GrpcServices.Handlers;
-using Payment.IntegrationEvents;
-using Shipping.IntegrationEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,18 +41,18 @@ builder.Host.UseWolverine(opts =>
         .RetryWithCooldown(50.Milliseconds(), 250.Milliseconds(), 1.Seconds())
         .Then.MoveToErrorQueue();
 
-    opts.Policies.ConventionalLocalRoutingIsAdditive();
+    //opts.Policies.ConventionalLocalRoutingIsAdditive();
 
     opts.AutoBuildMessageStorageOnStartup = AutoCreate.CreateOrUpdate;
 
-    opts.Publish(rule =>
-    {
-        rule.MessagesImplementing<IDomainEvent>();
+    //opts.Publish(rule =>
+    //{
+    //    rule.MessagesImplementing<IDomainEvent>();
 
-        rule.ToLocalQueue("domain_events").Sequential();
-    });
+    //    rule.ToLocalQueue("domain_events").Sequential();
+    //});
 
-    opts.UseRabbitMq(builder.Configuration.GetConnectionString("rabbitmq")!)
+    var rabbit = opts.UseRabbitMq(builder.Configuration.GetConnectionString("rabbitmq")!)
        .AutoProvision()
        .ConfigureChannelCreation(c =>
        {
@@ -64,44 +61,32 @@ builder.Host.UseWolverine(opts =>
            c.ConsumerDispatchConcurrency = 5;
        });
 
+    rabbit.BindExchange("payment.exchange")
+        .ToQueue("order.queue");
+
+    rabbit.BindExchange("shipping.exchange")
+        .ToQueue("order.queue");
+
+    rabbit.BindExchange("inventory.exchange")
+        .ToQueue("order.queue");
+
+    opts.ListenToRabbitQueue("order.queue");
+
     opts.Publish(rule =>
     {
         rule.MessagesImplementing<IOrderIntegrationEvent>();
 
-        rule.ToRabbitExchange("integration_events", exchange =>
+        rule.ToRabbitExchange("order.exchange", exchange =>
         {
             exchange.ExchangeType = ExchangeType.Fanout;
             exchange.IsDurable = true;
-            exchange.BindQueue("inventory.integration_events");
-        });
-    });
-
-    opts.Publish(rule =>
-    {
-        rule.MessagesImplementing<IPaymentIntegrationEvent>();
-
-        rule.ToRabbitExchange("integration_events", exchange =>
-        {
-            exchange.ExchangeType = ExchangeType.Fanout;
-            exchange.IsDurable = true;
-            exchange.BindQueue("order.integration_events");
-        });
-    });
-
-    opts.Publish(rule =>
-    {
-        rule.MessagesImplementing<IShippingIntegrationEvent>();
-
-        rule.ToRabbitExchange("integration_events", exchange =>
-        {
-            exchange.ExchangeType = ExchangeType.Fanout;
-            exchange.IsDurable = true;
-            exchange.BindQueue("order.integration_events");
         });
     });
 });
 
 builder.Host.UseResourceSetupOnStartup();
+
+builder.Services.AddWolverineHttp();
 
 #endregion
 
@@ -122,8 +107,6 @@ builder.Services.AddScoped<IGetProductStocksCaller, GetProductStocksCaller>();
 #endregion
 
 builder.Services.AddScoped<DataSeeder>();
-
-builder.Services.AddWolverineHttp();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

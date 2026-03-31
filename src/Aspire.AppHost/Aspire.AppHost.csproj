@@ -20,6 +20,8 @@
     <ProjectReference Include="..\services\Catalog\Catalog.API\Catalog.API.csproj" />
     <ProjectReference Include="..\services\Inventory\Inventory.API\Inventory.API.csproj" />
     <ProjectReference Include="..\services\Order\Order.API\Order.API.csproj" />
+    <ProjectReference Include="..\services\Payment\Payment.API\Payment.API.csproj" />
+    <ProjectReference Include="..\services\Shipping\Shipping.API\Shipping.API.csproj" />
   </ItemGroup>
 
 </Project>

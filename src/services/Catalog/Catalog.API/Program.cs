@@ -53,11 +53,11 @@ builder.Host.UseWolverine(opts =>
     {
         rule.MessagesImplementing<ICatalogIntegrationEvent>();
 
-        rule.ToRabbitExchange("integration_events", exchange =>
+        rule.ToRabbitExchange("catalog.exchange", exchange =>
         {
             exchange.ExchangeType = ExchangeType.Fanout;
             exchange.IsDurable = true;
-            exchange.BindQueue("inventory.integration_events");
+            exchange.BindQueue("inventory.queue");
         });
     });
 });

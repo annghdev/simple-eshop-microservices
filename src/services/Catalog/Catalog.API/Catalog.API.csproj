@@ -14,7 +14,7 @@
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.76.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-    <PackageReference Include="WolverineFx.Http.Marten" Version="5.20.1" />
+    <PackageReference Include="WolverineFx.Http.Marten" Version="5.26.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Features\Products\Queries\" />
-    <Folder Include="Messaging\" />
+    <Folder Include="Messaging\IntegrationEventHandlers\" />
   </ItemGroup>
 
 </Project>

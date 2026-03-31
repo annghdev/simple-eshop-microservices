@@ -21,16 +21,28 @@ var postgresPassword = builder.AddParameter(
     "postgres",
     publishValueAsDefault: false,
     secret: true);
+
 var redisPassword = builder.AddParameter(
     "redis-password",
     "redis",
     publishValueAsDefault: false,
     secret: true);
 
+var rabbitMqUser = builder.AddParameter(
+    "rabbitmq-user",
+    "rabbitmq",
+    publishValueAsDefault: true,
+    secret: false);
+var rabbitMqPassword = builder.AddParameter(
+    "rabbitmq-password",
+    "rabbitmq",
+    publishValueAsDefault: false,
+    secret: true);
+
 //var redis = builder.AddRedis("redis", port: redisHostPort, password: redisPassword)
 //    .WithEndpointProxySupport(false);
 
-var rabbitMq = builder.AddRabbitMQ("rabbitmq")
+var rabbitMq = builder.AddRabbitMQ("rabbitmq", userName: rabbitMqUser, password: rabbitMqPassword)
     .WithEndpointProxySupport(false)
     .WithManagementPlugin(rabbitMqManagementPort)
     .WithEndpoint(
@@ -46,12 +58,14 @@ var postgres = builder.AddPostgres(
         password: postgresPassword,
         port: postgresHostPort)
     .WithEndpointProxySupport(false)
-    .WithPgWeb();
+    .WithPgWeb(pg=>pg.WithHostPort(5050));
 
 //var commonDb = postgres.AddDatabase("commondb");
 var catalogDb = postgres.AddDatabase("catalogdb");
 var inventoryDb = postgres.AddDatabase("inventorydb");
 var orderDb = postgres.AddDatabase("orderdb");
+var paymentDb = postgres.AddDatabase("paymentdb");
+var shippingDb = postgres.AddDatabase("shippingdb");
 
 const string otlpEndpoint = "http://localhost:4317";
 const string tempoOtlpEndpoint = "http://localhost:4319";
@@ -85,11 +99,27 @@ var order = builder.AddProject<Projects.Order_API>("order")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithReference(orderDb).WaitFor(orderDb)
     .WithEndpoint("http", endpoint => endpoint.Port = 5003);
-    //.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
-    //.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
-    //.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
+//.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+//.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+//.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
 
+var payment = builder.AddProject<Projects.Payment_API>("payment")
+    //.WithReference(redis).WaitFor(redis)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(paymentDb).WaitFor(paymentDb)
+    .WithEndpoint("http", endpoint => endpoint.Port = 5004);
+//.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+//.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+//.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
 
+var shipping = builder.AddProject<Projects.Shipping_API>("shipping")
+    //.WithReference(redis).WaitFor(redis)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(shippingDb).WaitFor(shippingDb)
+    .WithEndpoint("http", endpoint => endpoint.Port = 5005);
+//.WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+//.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+//.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
 
 //var gateway = builder.AddProject<Projects.APIGateway>("apigateway")
 //    .WithReference(redis)

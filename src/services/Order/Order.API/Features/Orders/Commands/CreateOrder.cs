@@ -7,6 +7,7 @@ using Order.InternalCalls;
 using Contracts.Protos.InventoryStocks;
 using Wolverine;
 using Wolverine.Http;
+using Contracts.Enums;
 
 namespace Order.Features.Orders;
 
@@ -20,6 +21,7 @@ public class CreateOrderCommand
     public string PhoneNumber { get; set; } = string.Empty;
     public string? CouponCode { get; set; } = string.Empty;
     public string? CouponName { get; set; } = string.Empty;
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Online;
 
     public IEnumerable<OrderItemDto> Items { get; set; } = [];
 }
@@ -55,7 +57,7 @@ public static class CreateOrderHandler
             PhoneNumber = cmd.PhoneNumber,
             CouponCode = cmd.CouponCode,
             CouponName = cmd.CouponName,
-            PaymentMethod = PaymentMethod.COD,
+            PaymentMethod = cmd.PaymentMethod,
             ReservationStatus = ReservationStatus.Pending,
             Status = OrderStatus.Initialized,
             CreatedAt = now,

@@ -246,38 +246,6 @@ namespace Order.API.Persistence.Migrations
                     b.ToTable("OrderLogs");
                 });
 
-            modelBuilder.Entity("Order.Domain.PaymentTransaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("ExternalCode")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Gateway")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Method")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentTransaction");
-                });
-
             modelBuilder.Entity("Order.Domain.FreeItem", b =>
                 {
                     b.HasOne("Order.Domain.OrderItem", null)

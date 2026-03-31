@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="InternalCalls\Catalog\" />
-    <Folder Include="Enums\" />
   </ItemGroup>
 
   <ItemGroup>

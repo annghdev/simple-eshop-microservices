@@ -12,7 +12,6 @@ public class OrderDbContext : DbContext
     public DbSet<Domain.Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<ItemReservation> ItemReservations { get; set; }
-    public DbSet<PaymentTransaction> PaymentTransaction { get; set; }
     public DbSet<OrderLog> OrderLogs { get; set; }
     public DbSet<FreeItem> FreeItems { get; set; }
 

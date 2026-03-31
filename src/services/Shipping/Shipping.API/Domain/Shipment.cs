@@ -1,7 +1,10 @@
-﻿namespace Order.Domain;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Shipping.Domain;
 
 public class Shipment
 {
+    [Key]
     public Guid Id { get; set; }
     public Guid OrderId { get; set; }
     public int TotalItems { get; set; }
@@ -17,6 +20,7 @@ public class Shipment
 
 public class ShippingLog
 {
+    [Key]
     public Guid Id { get; set; }
     public Guid ShipmentId { get; set; }
     public ShippingStatus Status { get; set; }

@@ -1,7 +1,9 @@
 ﻿using Kernel;
 using Microsoft.EntityFrameworkCore;
 using Order.IntegrationEvents;
+using Payment.IntegrationEvents;
 using Wolverine;
+using Wolverine.Http;
 
 namespace Order.Messaging;
 
@@ -10,8 +12,7 @@ public static class PaymentFailedHandler
     public static async Task Handle(
         PaymentFailed evt,
         OrderDbContext db,
-        IMessageBus bus,
-        CancellationToken ct)
+        IMessageBus bus)
     {
         var order = await db.Orders
             .Include(o=>o.Logs)

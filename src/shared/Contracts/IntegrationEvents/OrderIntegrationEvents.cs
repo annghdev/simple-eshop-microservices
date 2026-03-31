@@ -3,7 +3,8 @@
 namespace Order.IntegrationEvents;
 
 public interface IOrderIntegrationEvent : IIntegrationEvent;
-
+public record OrderEventPublished(string Message = "Event produced from Order Service to Order Exchange")
+    : IOrderIntegrationEvent;
 public record OrderPlaced(
     Guid OrderId,
     decimal Amount,

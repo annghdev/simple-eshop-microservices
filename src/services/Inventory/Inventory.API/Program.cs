@@ -58,10 +58,8 @@ builder.Host.UseWolverine(opts =>
     //});
 
     // RabbitMQ config
-    opts.UseRabbitMq(builder.Configuration.GetConnectionString("rabbitmq")!)
+    var rabbit = opts.UseRabbitMq(builder.Configuration.GetConnectionString("rabbitmq")!)
        .AutoProvision()
-       .BindExchange("integration_events")
-       .ToQueue("inventory.integration_events")
        .ConfigureChannelCreation(c =>
        {
            c.PublisherConfirmationsEnabled = true;
@@ -69,13 +67,19 @@ builder.Host.UseWolverine(opts =>
            c.ConsumerDispatchConcurrency = 5;
        });
 
-    opts.ListenToRabbitQueue("inventory.integration_events");
+    rabbit.BindExchange("catalog.exchange")
+        .ToQueue("inventory.queue");
+
+    rabbit.BindExchange("order.exchange")
+        .ToQueue("inventory.queue");
+
+    opts.ListenToRabbitQueue("inventory.queue");
 
     opts.Publish(rule =>
     {
         rule.MessagesImplementing<IInventoryIntegrationEvent>();
 
-        rule.ToRabbitExchange("integration_events", exchange =>
+        rule.ToRabbitExchange("inventory.exchange", exchange =>
         {
             exchange.ExchangeType = ExchangeType.Fanout;
             exchange.IsDurable = true;

@@ -1,7 +1,11 @@
-﻿namespace Order.Domain;
+﻿using Contracts.Enums;
+using System.ComponentModel.DataAnnotations;
+
+namespace Payment.Domain;
 
 public class PaymentTransaction
 {
+    [Key]
     public Guid Id { get; set; }
     public Guid OrderId { get; set; }
     public string? ExternalCode { get; set; }
@@ -18,15 +22,6 @@ public enum PaymentGateway
     Momo,
     ZaloPay,
     Paypal
-}
-
-public enum PaymentMethod
-{
-    // After Ship
-    COD = 0,
-
-    // Before Ship
-    Online = 1,
 }
 
 public enum PaymentStatus

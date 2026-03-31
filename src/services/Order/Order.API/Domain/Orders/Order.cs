@@ -1,3 +1,4 @@
+using Contracts.Enums;
 using Kernel;
 using Order.InternalCalls;
 using System.ComponentModel.DataAnnotations;

@@ -1,3 +1,4 @@
+using Contracts.Enums;
 using Microsoft.EntityFrameworkCore;
 using Order.Domain;
 

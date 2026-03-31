@@ -50,6 +50,8 @@
     <Project Path="src/services/Catalog/Catalog.API/Catalog.API.csproj" />
     <Project Path="src/services/Inventory/Inventory.API/Inventory.API.csproj" />
     <Project Path="src/services/Order/Order.API/Order.API.csproj" />
+    <Project Path="src/services/Payment/Payment.API/Payment.API.csproj" Id="a3dadeb3-a02c-427f-b5a1-280d99b9c497" />
+    <Project Path="src/services/Shipping/Shipping.API/Shipping.API.csproj" Id="c77af520-6293-405e-95de-6503c214598b" />
   </Folder>
   <Folder Name="/src/shared/">
     <Project Path="src/Aspire.ServiceDefaults/Aspire.ServiceDefaults.csproj" />

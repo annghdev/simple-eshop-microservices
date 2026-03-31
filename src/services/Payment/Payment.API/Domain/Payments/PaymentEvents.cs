@@ -1,4 +1,4 @@
-﻿namespace Order.Domain;
+﻿namespace Payment.Domain;
 
 public record OnlinePaymentInitialized(Guid Id, Guid OrderId);
 public record OnlinePaymentSucceeded(Guid Id, Guid OrderId);

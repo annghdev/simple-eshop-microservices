@@ -1,6 +1,7 @@
 ﻿using Kernel;
 using Microsoft.EntityFrameworkCore;
 using Order.IntegrationEvents;
+using Shipping.IntegrationEvents;
 using Wolverine;
 
 namespace Order.Messaging;

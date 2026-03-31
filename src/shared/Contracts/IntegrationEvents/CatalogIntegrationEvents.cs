@@ -3,6 +3,8 @@ using Kernel.Interfaces;
 namespace Catalog.IntegrationEvents;
 
 public interface ICatalogIntegrationEvent : IIntegrationEvent;
+public record CatalogEventPublished(string Message = "Event produced from Catalog Service to Catalog Exchange")
+    : ICatalogIntegrationEvent;
 
 public record ProductPublished(
     Guid ProductId,

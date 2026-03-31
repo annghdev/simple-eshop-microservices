@@ -9,9 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.5" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.10" />
-    <PackageReference Include="WolverineFx.Http" Version="5.20.1" />
-    <PackageReference Include="WolverineFx.Http.FluentValidation" Version="5.20.1" />
-    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.20.1" />
+    <PackageReference Include="WolverineFx.Http" Version="5.26.0" />
+    <PackageReference Include="WolverineFx.Http.FluentValidation" Version="5.26.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.26.0" />
   </ItemGroup>
 
 </Project>
