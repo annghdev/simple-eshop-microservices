@@ -1,10 +1,11 @@
 using FluentValidation;
-using Microsoft.Extensions.Primitives;
 using Order.Domain;
 using Order.GrpcServices;
 using Order.IntegrationEvents;
 using Order.InternalCalls;
 using Contracts.Protos.InventoryStocks;
+using Order.Security;
+using System.Security.Claims;
 using Wolverine;
 using Wolverine.Http;
 using Contracts.Enums;
@@ -209,43 +210,31 @@ public static class CreateOrderHandler
 public static class CreateOrderEndpoint
 {
     [WolverinePost("orders")]
-    public static async Task<IResult> Post(CreateOrderCommand cmd, HttpContext httpContext, IMessageBus bus)
+    public static async Task<IResult> Post(CreateOrderCommand cmd, ClaimsPrincipal user, HttpContext httpContext, IMessageBus bus)
     {
         cmd.Id = cmd.Id == Guid.Empty ? Guid.CreateVersion7() : cmd.Id;
-        cmd.CustomerId = TryGetGuidHeader(httpContext.Request.Headers, "X-Customer-Id", "CustomerId");
-        cmd.GuestId = TryGetGuidHeader(httpContext.Request.Headers, "X-Guest-Id", "GuestId");
 
-        if (cmd.CustomerId.HasValue && cmd.GuestId.HasValue)
+        if (OrderAuthorizationHelpers.IsAuthenticated(user))
         {
-            return Results.BadRequest("Provide only one header: CustomerId or GuestId.");
+            cmd.CustomerId = OrderAuthorizationHelpers.GetCustomerId(user);
+            cmd.GuestId = null;
+            if (!cmd.CustomerId.HasValue)
+            {
+                return Results.Forbid();
+            }
         }
-
-        if (!cmd.CustomerId.HasValue && !cmd.GuestId.HasValue)
+        else
         {
-            return Results.BadRequest("Missing required header: CustomerId or GuestId.");
+            cmd.CustomerId = null;
+            cmd.GuestId = OrderAuthorizationHelpers.GetGuestId(httpContext.Request.Headers);
+            if (!cmd.GuestId.HasValue)
+            {
+                return Results.BadRequest("Missing required header: X-Guest-Id.");
+            }
         }
 
         await bus.SendAsync(cmd);
         return Results.Accepted($"/orders/{cmd.Id}", new { orderId = cmd.Id });
-    }
-
-    private static Guid? TryGetGuidHeader(IHeaderDictionary headers, params string[] keys)
-    {
-        foreach (var key in keys)
-        {
-            if (!headers.TryGetValue(key, out StringValues value))
-            {
-                continue;
-            }
-
-            var raw = value.FirstOrDefault();
-            if (Guid.TryParse(raw, out var parsed))
-            {
-                return parsed;
-            }
-        }
-
-        return null;
     }
 }
 

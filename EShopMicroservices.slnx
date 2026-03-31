@@ -52,6 +52,7 @@
     <Project Path="src/services/Order/Order.API/Order.API.csproj" />
     <Project Path="src/services/Payment/Payment.API/Payment.API.csproj" Id="a3dadeb3-a02c-427f-b5a1-280d99b9c497" />
     <Project Path="src/services/Shipping/Shipping.API/Shipping.API.csproj" Id="c77af520-6293-405e-95de-6503c214598b" />
+    <Project Path="src/services/Users/Users/Users.csproj" Id="f220d6df-ac02-49c8-8688-b232178b25d8" />
   </Folder>
   <Folder Name="/src/shared/">
     <Project Path="src/Aspire.ServiceDefaults/Aspire.ServiceDefaults.csproj" />
@@ -64,5 +65,7 @@
     <Project Path="tests/Tests.Common/Tests.Common.csproj" Id="c564cd89-3d84-43c7-a532-7fccf2ba2770" />
     <Project Path="tests/Tests.Inventory/Tests.Inventory.csproj" Id="0157fc6d-076d-4486-833b-a52a5c31255d" />
     <Project Path="tests/Tests.Order/Tests.Order.csproj" Id="23cf006e-64b2-469d-9270-ccaecdacd167" />
+    <Project Path="tests/Tests.Payment/Tests.Payment.csproj" Id="190cdba1-612f-46f9-b061-e4e068a02cf9" />
+    <Project Path="tests/Tests.Shipping/Tests.Shipping.csproj" Id="927f2fbe-08c7-4746-9279-de21e3ba13f4" />
   </Folder>
 </Solution>

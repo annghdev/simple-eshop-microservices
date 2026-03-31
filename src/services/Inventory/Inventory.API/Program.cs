@@ -1,13 +1,17 @@
 using Contracts.Protos.InventoryStocks;
 using Contracts.Protos.OrderReservation;
+using Contracts.Common;
 using Inventory.API.GrpcServices.Callers;
 using Inventory.GrpcServices;
 using Inventory.IntegrationEvents;
 using Inventory.Persistence;
 using JasperFx;
 using Kernel.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Marten.Events.Projections;
 using Scalar.AspNetCore;
+using System.Text;
 using Wolverine.Configuration;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
@@ -116,6 +120,42 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<DataSeeder>();
 
+var jwtIssuer = builder.Configuration["Auth:Jwt:Issuer"] ?? "eshop.gateway";
+var jwtAudience = builder.Configuration["Auth:Jwt:Audience"] ?? "eshop.api";
+var jwtSigningKey = builder.Configuration["Auth:Jwt:SigningKey"] ?? "dev-signing-key-at-least-32-characters-long";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanReadInventory",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Inventory.Read));
+    options.AddPolicy("CanAdjustInventory",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Inventory.Adjust));
+    options.AddPolicy("CanTransferInventory",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Inventory.Transfer));
+    options.AddPolicy("CanReceiveInventory",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Inventory.Receive));
+});
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -133,6 +173,8 @@ if (!app.Environment.IsDevelopment())
     //app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseMiddleware<GlobalExceptionHandler>();
 
 app.MapWolverineEndpoints();

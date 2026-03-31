@@ -1,5 +1,6 @@
-﻿using Kernel;
+using Kernel;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Order.IntegrationEvents;
 using Wolverine;
@@ -30,12 +31,12 @@ public static class ConfirmOrderHandler
 public static class ConfirmOrderEndpoint
 {
     [WolverinePut("/orders/{id}/confirm")]
-    //[Authorize(Policy = "CanConfirmOrder")]
-    public static IResult Put(Guid id, IMessageBus bus, HttpContext httpContext, CancellationToken ct)
+    [Authorize(Policy = "CanConfirmOrder")]
+    public static async Task<IResult> Put(Guid id, ClaimsPrincipal user, IMessageBus bus, CancellationToken ct)
     {
-        string userId = "Staff123"; // simulate getting user ID from the authenticated user
+        var userId = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
         var cmd = new ConfirmOrderCommand(id, userId);
-        bus.InvokeAsync(cmd, ct);
+        await bus.InvokeAsync(cmd, ct);
         return Results.Ok();
     }
 }

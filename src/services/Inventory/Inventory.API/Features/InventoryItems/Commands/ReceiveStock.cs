@@ -1,4 +1,9 @@
-﻿namespace Inventory.Features.InventoryItems;
+using Contracts.Common;
+using Inventory.Security;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
+namespace Inventory.Features.InventoryItems;
 
 public record ReceiveStockCommand(Guid Id, int Quantity);
 
@@ -15,8 +20,22 @@ public static class ReceiveStockHandler
 public static class ReceiveStockEndpoint
 {
     [WolverinePut("inventory/items/{id}/receive")]
-    public static (IResult, ReceiveStockCommand) Put(Guid id, ReceiveStockCommand cmd)
+    [Authorize(Policy = "CanReceiveInventory")]
+    public static async Task<IResult> Put(Guid id, ReceiveStockCommand cmd, ClaimsPrincipal user, IQuerySession session, IMessageBus bus)
     {
-        return (Results.Ok(), cmd);
+        var item = await session.LoadAsync<InventoryItem>(id);
+        if (item is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (!InventoryAuthorizationHelpers.CanAccessWarehouse(user, item.WarehouseId))
+        {
+            return Results.Forbid();
+        }
+
+        cmd = cmd with { Id = id };
+        await bus.InvokeAsync(cmd);
+        return Results.Ok();
     }
 }

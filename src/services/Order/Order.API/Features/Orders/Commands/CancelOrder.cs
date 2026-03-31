@@ -1,6 +1,10 @@
-﻿using Kernel;
+using Contracts.Common;
+using Kernel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Order.IntegrationEvents;
+using Order.Security;
+using System.Security.Claims;
 using Wolverine;
 using Wolverine.Http;
 
@@ -35,9 +39,25 @@ public static class CancelOrderHandler
 public static class CancelOrderEndpoint
 {
     [WolverinePut("/orders/{id}/cancel")]
-    public static IResult Put(Guid id, CancelOrderCommand cmd, IMessageBus bus, CancellationToken ct)
+    [Authorize]
+    public static async Task<IResult> Put(Guid id, string reason, ClaimsPrincipal user, OrderDbContext db, IMessageBus bus, CancellationToken ct)
     {
-        bus.InvokeAsync(cmd, ct);
+        var order = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, ct);
+        if (order is null)
+        {
+            return Results.NotFound();
+        }
+
+        var canCancelOwn = OrderAuthorizationHelpers.HasPermission(user, PermissionConstants.Order.CancelOwn);
+        var customerId = OrderAuthorizationHelpers.GetCustomerId(user);
+        if (!canCancelOwn || !customerId.HasValue || order.CustomerId != customerId.Value)
+        {
+            return Results.Forbid();
+        }
+
+        var cancelBy = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
+        var cmd = new CancelOrderCommand(id, reason, cancelBy);
+        await bus.InvokeAsync(cmd, ct);
         return Results.Ok();
     }
 }

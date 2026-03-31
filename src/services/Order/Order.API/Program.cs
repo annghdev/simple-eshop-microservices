@@ -1,9 +1,12 @@
 using Contracts.Protos.InventoryStocks;
+using Contracts.Common;
 using JasperFx;
 using JasperFx.Core;
 using JasperFx.Resources;
 using Kernel.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Order;
 using Order.Persistence;
 using Order.GrpcServices;
@@ -17,6 +20,7 @@ using Wolverine.Http;
 using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 using Order.API.GrpcServices.Handlers;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +115,44 @@ builder.Services.AddScoped<DataSeeder>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+var jwtIssuer = builder.Configuration["Auth:Jwt:Issuer"] ?? "eshop.gateway";
+var jwtAudience = builder.Configuration["Auth:Jwt:Audience"] ?? "eshop.api";
+var jwtSigningKey = builder.Configuration["Auth:Jwt:SigningKey"] ?? "dev-signing-key-at-least-32-characters-long";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanCreateOrder",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Order.Create));
+    options.AddPolicy("CanReadAllOrders",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Order.ReadAll));
+    options.AddPolicy("CanReadOwnOrder",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Order.ReadOwn));
+    options.AddPolicy("CanCancelOwnOrder",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Order.CancelOwn));
+    options.AddPolicy("CanConfirmOrder",
+        p => p.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, PermissionConstants.Order.Confirm));
+});
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -127,6 +169,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseMiddleware<GlobalExceptionHandler>();
 
 app.MapWolverineEndpoints();

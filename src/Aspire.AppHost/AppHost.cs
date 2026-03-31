@@ -66,6 +66,7 @@ var inventoryDb = postgres.AddDatabase("inventorydb");
 var orderDb = postgres.AddDatabase("orderdb");
 var paymentDb = postgres.AddDatabase("paymentdb");
 var shippingDb = postgres.AddDatabase("shippingdb");
+var authDb = postgres.AddDatabase("authdb");
 
 const string otlpEndpoint = "http://localhost:4317";
 const string tempoOtlpEndpoint = "http://localhost:4319";
@@ -121,19 +122,18 @@ var shipping = builder.AddProject<Projects.Shipping_API>("shipping")
 //.WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
 //.WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
 
-//var gateway = builder.AddProject<Projects.APIGateway>("apigateway")
-//    .WithReference(redis)
-//    .WithReference(rabbitMq)
-//    .WithReference(commonDb)
-//    .WithReference(catalog)
-//    .WithReference(inventory)
-//    .WithReference(order)
-//    .WithEndpoint("http", endpoint => endpoint.Port = 5000)
-//    .WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
-//    .WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
-//    .WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
-//    .WaitFor(commonDb)
-//    .WaitFor(redis)
-//    .WaitFor(rabbitMq);
+var gateway = builder.AddProject<Projects.APIGateway>("apigateway")
+    .WithReference(rabbitMq)
+    .WithReference(authDb).WaitFor(authDb)
+    .WithReference(catalog)
+    .WithReference(inventory)
+    .WithReference(order)
+    .WithReference(payment)
+    .WithReference(shipping)
+    .WithEndpoint("http", endpoint => endpoint.Port = 5000)
+    .WithEnvironment("JAEGER_OTLP_ENDPOINT", otlpEndpoint)
+    .WithEnvironment("TEMPO_OTLP_ENDPOINT", tempoOtlpEndpoint)
+    .WithEnvironment("LOKI_ENDPOINT", lokiEndpoint)
+    .WaitFor(rabbitMq);
 
 builder.Build().Run();

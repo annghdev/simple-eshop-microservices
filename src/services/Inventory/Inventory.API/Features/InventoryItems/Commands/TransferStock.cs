@@ -1,4 +1,9 @@
-﻿namespace Inventory.Features.InventoryItems;
+using Contracts.Common;
+using Inventory.Security;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
+namespace Inventory.Features.InventoryItems;
 
 public record TransferStockCommand(Guid Id, int Quantity, Guid ToWarehouseId);
 
@@ -24,8 +29,22 @@ public static class TransferStockHandler
 public static class TranferStockEndpoint
 {
     [WolverinePut("inventory/items/{id}/transfer")]
-    public static async Task<IResult> Put(Guid id, TransferStockCommand cmd, IMessageBus bus)
+    [Authorize(Policy = "CanTransferInventory")]
+    public static async Task<IResult> Put(Guid id, TransferStockCommand cmd, ClaimsPrincipal user, IQuerySession session, IMessageBus bus)
     {
+        var source = await session.LoadAsync<InventoryItem>(id);
+        if (source is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (!InventoryAuthorizationHelpers.CanAccessWarehouse(user, source.WarehouseId) ||
+            !InventoryAuthorizationHelpers.CanAccessWarehouse(user, cmd.ToWarehouseId))
+        {
+            return Results.Forbid();
+        }
+
+        cmd = cmd with { Id = id };
         await bus.InvokeAsync(cmd);
         return Results.Ok();
     }

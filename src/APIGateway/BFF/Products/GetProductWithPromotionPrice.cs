@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using APIGateway.Auth;
+using Contracts.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Wolverine.Http;
 
@@ -8,7 +10,7 @@ public class GetProductWithPromotionPrice
 {
     [WolverineGet("bff/products")]
     [EnableRateLimiting("sliding")]
-    //[Authorize]
+    [Authorize(Policy = PolicyNames.CanReadCatalog)]
     public static IResult Get()
     {
         return Results.Ok();

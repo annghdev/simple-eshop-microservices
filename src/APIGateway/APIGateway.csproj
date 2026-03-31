@@ -10,9 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Auth\Users\Staffs\**" />
+    <Content Remove="Auth\Users\Staffs\**" />
+    <EmbeddedResource Remove="Auth\Users\Staffs\**" />
+    <None Remove="Auth\Users\Staffs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,11 +32,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Aspire.ServiceDefaults\Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\services\Users\Users\Users.csproj" />
+    <ProjectReference Include="..\shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\shared\Kernel\Kernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Auth\" />
+    <Folder Include="Auth\Authentication\" />
+    <Folder Include="Auth\Authorization\" />
   </ItemGroup>
 
 </Project>

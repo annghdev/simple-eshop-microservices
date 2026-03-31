@@ -1,5 +1,8 @@
+using Contracts.Common;
 using Kernel.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Wolverine.Http;
 
 namespace Inventory.Features.InventoryItems;
@@ -71,6 +74,7 @@ public static class GetItemsHandler
 public static class GetItemsEndpoint
 {
     [WolverineGet("inventory/items")]
+    [Authorize(Policy = "CanReadInventory")]
     public static async Task<PagedResult<InventoryItem>> GetItems(
         [FromQuery] Guid? productId,
         [FromQuery] Guid? variantId,
@@ -79,13 +83,31 @@ public static class GetItemsEndpoint
         [FromQuery] bool isDescending,
         [FromQuery] int page,
         [FromQuery] int pageSize,
+        ClaimsPrincipal user,
         IMessageBus bus)
     {
+        var warehouseClaims = user.Claims
+            .Where(x => x.Type == AuthClaimTypes.WarehouseId)
+            .Select(x => Guid.TryParse(x.Value, out var warehouseId) ? warehouseId : Guid.Empty)
+            .Where(x => x != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (!warehouseId.HasValue && warehouseClaims.Count == 0)
+        {
+            return new PagedResult<InventoryItem>([], page <= 0 ? 1 : page, pageSize <= 0 ? 12 : pageSize, 0);
+        }
+
+        if (warehouseId.HasValue && warehouseClaims.Count > 0 && !warehouseClaims.Contains(warehouseId.Value))
+        {
+            return new PagedResult<InventoryItem>([], page <= 0 ? 1 : page, pageSize <= 0 ? 12 : pageSize, 0);
+        }
+
         var query = new GetItemsQuery
         {
             ProductId = productId,
             VariantId = variantId,
-            WarehouseId = warehouseId,
+            WarehouseId = warehouseId ?? warehouseClaims.FirstOrDefault(),
             OrderBy = orderBy,
             IsDescending = isDescending,
             Page = page <= 0 ? 1 : page,
@@ -97,19 +119,35 @@ public static class GetItemsEndpoint
     }
 
     [WolverineGet("inventory/items/product/{id}")]
-    public static async Task<IEnumerable<InventoryItem>> GetByProductId(Guid id, IQuerySession session, CancellationToken ct)
+    [Authorize(Policy = "CanReadInventory")]
+    public static async Task<IEnumerable<InventoryItem>> GetByProductId(Guid id, ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
+        var warehouseIds = user.Claims
+            .Where(x => x.Type == AuthClaimTypes.WarehouseId)
+            .Select(x => Guid.TryParse(x.Value, out var warehouseId) ? warehouseId : Guid.Empty)
+            .Where(x => x != Guid.Empty)
+            .ToHashSet();
+
         var items = await session.Query<InventoryItem>()
             .Where(i => i.ProductId == id)
+            .Where(i => warehouseIds.Contains(i.WarehouseId))
             .ToListAsync(ct);
         return items;
     }
 
     [WolverineGet("inventory/items/variant/{id}")]
-    public static async Task<IEnumerable<InventoryItem>> GetByVariantId(Guid id, IQuerySession session, CancellationToken ct)
+    [Authorize(Policy = "CanReadInventory")]
+    public static async Task<IEnumerable<InventoryItem>> GetByVariantId(Guid id, ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
+        var warehouseIds = user.Claims
+            .Where(x => x.Type == AuthClaimTypes.WarehouseId)
+            .Select(x => Guid.TryParse(x.Value, out var warehouseId) ? warehouseId : Guid.Empty)
+            .Where(x => x != Guid.Empty)
+            .ToHashSet();
+
         var items = await session.Query<InventoryItem>()
             .Where(i => i.VariantId != null && i.VariantId == id)
+            .Where(i => warehouseIds.Contains(i.WarehouseId))
             .ToListAsync(ct);
         return items;
     }

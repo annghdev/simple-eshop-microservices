@@ -1,9 +1,13 @@
+using APIGateway.Auth;
+using Contracts.Common;
 using Kernel.Middlewares;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
-using System.Net;
+using System.Text;
 using System.Threading.RateLimiting;
 using Wolverine;
 using Wolverine.Http;
@@ -16,6 +20,67 @@ builder.Host.UseWolverine();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<AuthDbContext>(options =>
+        options.UseInMemoryDatabase("auth-test-db"));
+}
+else
+{
+    builder.Services.AddDbContext<AuthDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("authdb")));
+}
+builder.Services
+    .AddIdentityCore<Account>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireUppercase = true;
+    })
+    .AddRoles<Role>()
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddSignInManager();
+
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtOptions.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwtOptions.Audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+    };
+});
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(PolicyNames.IsOrderOwner, policy => policy.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.CustomerId))
+    .AddPolicy(PolicyNames.CanModifyOwnedWarehouse, policy => policy.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.WarehouseId));
+
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in PermissionConstants.All)
+    {
+        var policyName = PolicyNames.GetPolicyByPermission(permission);
+        options.AddPolicy(policyName,
+            policy => policy.RequireAuthenticatedUser().RequireClaim(AuthClaimTypes.Permission, permission));
+    }
+});
+
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<AuthDataSeeder>();
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
@@ -97,8 +162,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRateLimiter();
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("AllowAll");
@@ -108,14 +173,29 @@ else
     app.UseCors("AllowSpecificOrigins");
 }
 
-app.MapReverseProxy();
-
 app.UseMiddleware<GlobalExceptionHandler>();
 
+app.MapReverseProxy();
 app.MapWolverineEndpoints();
+app.MapAuthEndpoints();
 app.MapGet("/", () => Results.Redirect("scalar/v1"));
 
 //app.MapGet("/hello", () => "Ok")
 //    .RequireRateLimiting("sliding");
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    if (db.Database.IsRelational())
+    {
+        await db.Database.MigrateAsync();
+    }
+
+    await db.Database.EnsureCreatedAsync();
+    var seeder = scope.ServiceProvider.GetRequiredService<AuthDataSeeder>();
+    await seeder.SeedAsync();
+}
+
 app.Run();
+
+public partial class Program;

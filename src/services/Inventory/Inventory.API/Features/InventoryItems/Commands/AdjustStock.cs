@@ -1,4 +1,9 @@
-﻿namespace Inventory.Features.InventoryItems;
+using Contracts.Common;
+using Inventory.Security;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
+namespace Inventory.Features.InventoryItems;
 
 public record AdjustStockCommand(Guid Id, int Quantity);
 
@@ -15,8 +20,21 @@ public static class AdjustStockHandler
 public static class AdjustStockEndpoint
 {
     [WolverinePost("inventory/items/adjust")]
-    public static (IResult, AdjustStockCommand) Post(AdjustStockCommand cmd)
+    [Authorize(Policy = "CanAdjustInventory")]
+    public static async Task<IResult> Post(AdjustStockCommand cmd, ClaimsPrincipal user, IQuerySession session, IMessageBus bus)
     {
-        return (Results.Ok(), cmd);
+        var item = await session.LoadAsync<InventoryItem>(cmd.Id);
+        if (item is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (!InventoryAuthorizationHelpers.CanAccessWarehouse(user, item.WarehouseId))
+        {
+            return Results.Forbid();
+        }
+
+        await bus.InvokeAsync(cmd);
+        return Results.Ok();
     }
 }
