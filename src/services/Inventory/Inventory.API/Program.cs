@@ -197,3 +197,5 @@ catch (Exception ex)
 
 
 return await app.RunJasperFxCommands(args);
+
+public partial class Program;

@@ -24,8 +24,9 @@ builder.Services.AddOpenApi();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 if (builder.Environment.IsEnvironment("Testing"))
 {
+    var testDbName = builder.Configuration["Auth:TestDbName"] ?? $"auth-test-db-{Guid.NewGuid():N}";
     builder.Services.AddDbContext<AuthDbContext>(options =>
-        options.UseInMemoryDatabase("auth-test-db"));
+        options.UseInMemoryDatabase(testDbName));
 }
 else
 {

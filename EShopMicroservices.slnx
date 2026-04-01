@@ -40,6 +40,8 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".dockerignore" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
@@ -60,12 +62,13 @@
     <Project Path="src/shared/Kernel/Kernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Tests.APIGateway/Tests.APIGateway.csproj" Id="78b66058-3510-45c1-87e5-f3df33323083" />
-    <Project Path="tests/Tests.Catalog/Tests.Catalog.csproj" Id="55050055-e284-4bfd-89eb-46488f128171" />
+    <Project Path="tests/Tests.APIGateway/Tests.APIGateway.csproj" />
+    <Project Path="tests/Tests.Catalog/Tests.Catalog.csproj" />
     <Project Path="tests/Tests.Common/Tests.Common.csproj" Id="c564cd89-3d84-43c7-a532-7fccf2ba2770" />
-    <Project Path="tests/Tests.Inventory/Tests.Inventory.csproj" Id="0157fc6d-076d-4486-833b-a52a5c31255d" />
-    <Project Path="tests/Tests.Order/Tests.Order.csproj" Id="23cf006e-64b2-469d-9270-ccaecdacd167" />
-    <Project Path="tests/Tests.Payment/Tests.Payment.csproj" Id="190cdba1-612f-46f9-b061-e4e068a02cf9" />
-    <Project Path="tests/Tests.Shipping/Tests.Shipping.csproj" Id="927f2fbe-08c7-4746-9279-de21e3ba13f4" />
+    <Project Path="tests/Tests.E2E.Aspire/Tests.E2E.Aspire.csproj" />
+    <Project Path="tests/Tests.Inventory/Tests.Inventory.csproj" />
+    <Project Path="tests/Tests.Order/Tests.Order.csproj" />
+    <Project Path="tests/Tests.Payment/Tests.Payment.csproj" />
+    <Project Path="tests/Tests.Shipping/Tests.Shipping.csproj" />
   </Folder>
 </Solution>

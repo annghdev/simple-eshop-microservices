@@ -141,9 +141,18 @@ public class AuthFlowTests : IClassFixture<AuthGatewayFactory>
 
 public class AuthGatewayFactory : WebApplicationFactory<Program>
 {
+    private readonly string _dbName = $"auth-test-db-{Guid.NewGuid():N}";
+
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Auth:TestDbName"] = _dbName
+            });
+        });
     }
 }
 

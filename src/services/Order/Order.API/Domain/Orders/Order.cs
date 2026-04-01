@@ -140,6 +140,7 @@ public class Order
                 StatusAfter = OrderStatus.Confirmed
             });
 
+            Status = OrderStatus.Confirmed;
             LastUpdated = now;
         }
         else
