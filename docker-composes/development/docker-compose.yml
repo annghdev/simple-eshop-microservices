@@ -125,7 +125,11 @@ services:
       dockerfile: src/services/Inventory/Inventory.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      # Kestrel binds 8080 (HTTP/1.1) + 8082 (gRPC HTTP/2) in code; clear image defaults to avoid duplicate binds.
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
+      ConnectionStrings__order: http://order:8082
       ConnectionStrings__inventorydb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=inventorydb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
@@ -152,7 +156,10 @@ services:
       dockerfile: src/services/Order/Order.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
+      ConnectionStrings__inventory: http://inventory:8082
       ConnectionStrings__orderdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=orderdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672

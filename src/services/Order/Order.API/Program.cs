@@ -21,8 +21,29 @@ using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 using Order.API.GrpcServices.Handlers;
 using System.Text;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+
+// gRPC over cleartext needs HTTP/2; h2c cannot negotiate on the same port as HTTP/1.1 (no TLS/ALPN).
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
+static bool RunningInContainer() =>
+    string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true", StringComparison.OrdinalIgnoreCase);
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    if (RunningInContainer())
+    {
+        // Docker/Linux: separate ports — see grpc-dotnet / Kestrel h2c negotiation limits.
+        options.ListenAnyIP(8080, lo => lo.Protocols = HttpProtocols.Http1);
+        options.ListenAnyIP(8082, lo => lo.Protocols = HttpProtocols.Http2);
+    }
+    else
+    {
+        options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http1AndHttp2);
+    }
+});
 
 #region Wolverine
 
