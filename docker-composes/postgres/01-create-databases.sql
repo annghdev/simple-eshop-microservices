@@ -1,4 +1,6 @@
-CREATE DATABASE commondb;
 CREATE DATABASE catalogdb;
 CREATE DATABASE inventorydb;
 CREATE DATABASE orderdb;
+CREATE DATABASE paymentdb;
+CREATE DATABASE shippingdb;
+CREATE DATABASE authdb;

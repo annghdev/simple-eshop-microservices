@@ -1,3 +1,5 @@
+# Scrape targets use Docker Compose service names on the shared app network
+# (eshop-production-net). Deploy the application stack first.
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -22,6 +24,16 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["order:8080"]
+
+  - job_name: "payment-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["payment:8080"]
+
+  - job_name: "shipping-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["shipping:8080"]
 
   - job_name: "postgres-exporter"
     metrics_path: /metrics

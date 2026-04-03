@@ -1,14 +1,16 @@
 param(
     [switch]$Down,
     [switch]$Logs,
-    [switch]$Status
+    [switch]$Status,
+    [switch]$Rebuild
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Split-Path -Parent $scriptDir
+# docker-compose lives under docker-composes/development; repo root is two levels up
+$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 $composeFile = Join-Path $scriptDir "docker-compose.yml"
 $envFile = Join-Path $scriptDir ".env"
 
@@ -37,14 +39,14 @@ Assert-DockerReady
 Push-Location $repoRoot
 try {
     if ($Down) {
-        Write-Host "Stopping production stack..." -ForegroundColor Yellow
+        Write-Host "Stopping development stack..." -ForegroundColor Yellow
         Invoke-Compose @("down", "--remove-orphans")
-        Write-Host "Production stack stopped." -ForegroundColor Green
+        Write-Host "Development stack stopped." -ForegroundColor Green
         exit 0
     }
 
     if ($Logs) {
-        Write-Host "Streaming production logs..." -ForegroundColor Cyan
+        Write-Host "Streaming development logs..." -ForegroundColor Cyan
         Invoke-Compose @("logs", "-f", "--tail", "200")
         exit 0
     }
@@ -54,11 +56,21 @@ try {
         exit 0
     }
 
-    Write-Host "Starting production stack..." -ForegroundColor Yellow
-    Invoke-Compose @("up", "-d")
+    if ($Rebuild) {
+        Write-Host "Rebuilding and starting development stack..." -ForegroundColor Yellow
+        Invoke-Compose @("up", "-d", "--build")
+    }
+    else {
+        Write-Host "Starting development stack..." -ForegroundColor Yellow
+        Invoke-Compose @("up", "-d")
+    }
 
     Write-Host ""
-    Write-Host "Production stack is running." -ForegroundColor Green
+    Write-Host "Development stack is running:" -ForegroundColor Green
+    Write-Host "  APIGateway: http://localhost:5000"
+    Write-Host "  Grafana:    http://localhost:3000"
+    Write-Host "  Prometheus: http://localhost:9090"
+    Write-Host "  Jaeger:     http://localhost:16686"
 }
 finally {
     Pop-Location

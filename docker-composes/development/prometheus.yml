@@ -6,34 +6,44 @@ scrape_configs:
   - job_name: "apigateway"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:5000"]
+      - targets: ["apigateway:8080"]
 
   - job_name: "catalog-api"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:5001"]
+      - targets: ["catalog:8080"]
 
   - job_name: "inventory-api"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:5002"]
+      - targets: ["inventory:8080"]
 
   - job_name: "order-api"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:5003"]
+      - targets: ["order:8080"]
+
+  - job_name: "payment-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["payment:8080"]
+
+  - job_name: "shipping-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["shipping:8080"]
 
   - job_name: "postgres-exporter"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:9187"]
+      - targets: ["postgres-exporter:9187"]
 
   - job_name: "rabbitmq"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:15692"]
+      - targets: ["rabbitmq:15692"]
 
   - job_name: "redis-exporter"
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:9121"]
+      - targets: ["redis-exporter:9121"]

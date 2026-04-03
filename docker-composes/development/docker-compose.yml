@@ -11,7 +11,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../docker/postgres/init/01-create-databases.sql:/docker-entrypoint-initdb.d/01-create-databases.sql:ro
+      - ../postgres/01-create-databases.sql:/docker-entrypoint-initdb.d/01-create-databases.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
       interval: 10s
@@ -58,12 +58,12 @@ services:
   apigateway:
     image: ${APIGATEWAY_IMAGE}
     build:
-      context: ..
+      context: ../..
       dockerfile: src/APIGateway/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__commondb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=commondb
+      ConnectionStrings__authdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=authdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
       JAEGER_OTLP_ENDPOINT: http://jaeger:4317
@@ -72,6 +72,8 @@ services:
       ReverseProxy__Clusters__catalog-cluster__Destinations__catalog-api__Address: http://catalog:8080
       ReverseProxy__Clusters__inventory-cluster__Destinations__inventory-api__Address: http://inventory:8080
       ReverseProxy__Clusters__order-cluster__Destinations__order-api__Address: http://order:8080
+      ReverseProxy__Clusters__payment-cluster__Destinations__payment-api__Address: http://payment:8080
+      ReverseProxy__Clusters__shipping-cluster__Destinations__shipping-api__Address: http://shipping:8080
     ports:
       - "${APIGATEWAY_PORT}:8080"
     depends_on:
@@ -81,6 +83,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      payment:
+        condition: service_started
+      shipping:
+        condition: service_started
     restart: unless-stopped
     networks:
       - eshop
@@ -88,7 +94,7 @@ services:
   catalog:
     image: ${CATALOG_IMAGE}
     build:
-      context: ..
+      context: ../..
       dockerfile: src/services/Catalog/Catalog.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
@@ -115,7 +121,7 @@ services:
   inventory:
     image: ${INVENTORY_IMAGE}
     build:
-      context: ..
+      context: ../..
       dockerfile: src/services/Inventory/Inventory.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
@@ -142,7 +148,7 @@ services:
   order:
     image: ${ORDER_IMAGE}
     build:
-      context: ..
+      context: ../..
       dockerfile: src/services/Order/Order.API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
@@ -155,6 +161,60 @@ services:
       LOKI_ENDPOINT: http://loki:3100
     ports:
       - "${ORDER_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - eshop
+
+  payment:
+    image: ${PAYMENT_IMAGE}
+    build:
+      context: ../..
+      dockerfile: src/services/Payment/Payment.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__paymentdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=paymentdb
+      ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
+      ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      JAEGER_OTLP_ENDPOINT: http://jaeger:4317
+      TEMPO_OTLP_ENDPOINT: http://tempo:4319
+      LOKI_ENDPOINT: http://loki:3100
+    ports:
+      - "${PAYMENT_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - eshop
+
+  shipping:
+    image: ${SHIPPING_IMAGE}
+    build:
+      context: ../..
+      dockerfile: src/services/Shipping/Shipping.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__shippingdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=shippingdb
+      ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
+      ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      JAEGER_OTLP_ENDPOINT: http://jaeger:4317
+      TEMPO_OTLP_ENDPOINT: http://tempo:4319
+      LOKI_ENDPOINT: http://loki:3100
+    ports:
+      - "${SHIPPING_PORT}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -183,6 +243,8 @@ services:
       - catalog
       - inventory
       - order
+      - payment
+      - shipping
       - postgres-exporter
       - redis-exporter
       - rabbitmq

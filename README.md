@@ -1,4 +1,4 @@
-# EShop Microservices (Learning Simulation)
+# Simple eShop Microservices
 
 ![EShop Architecture Diagram](assets/architecture-diagram.png)
 
@@ -10,10 +10,10 @@
 - [Overview | Tổng quan](#overview--tong-quan)
 - [Architectures and Patterns | Kiến trúc và mẫu thiết kế](#architectures-and-patterns--kien-truc-va-mau-thiet-ke)
 - [Technologies | Công nghệ](#technologies--cong-nghe)
-- [Services | Dịch vụ](#services--dich-vu)
+- [Services | Dịch vụ] (#services--dich-vu)
 - [Core Flows | Luồng nghiệp vụ chính](#core-flows--luong-nghiep-vu-chinh)
 - [Current State | Hiện trạng dự án](#current-state--hien-trang-du-an)
-- [Testing | Kiểm thử](#testing--kiem-thu)
+- [Testing | Kiểm thử] (#testing--kiem-thu)
 - [Setup Guide | Hướng dẫn cài đặt](#setup-guide--huong-dan-cai-dat)
 
 ## Overview | Tổng quan
@@ -27,6 +27,22 @@
 - Dự án này trình bày cách thiết kế, xây dựng và vận hành một nền tảng e-commerce theo kiến trúc microservices phân tán.
 - Phạm vi giải quyết gồm catalog sản phẩm, tồn kho, đặt hàng, thanh toán, vận chuyển và API gateway.
 - Mục tiêu hướng đến học tập, thử nghiệm, và làm nền tảng tham khảo cho các pattern gần với môi trường production.
+
+```
+📁 src/
+├── APIGateway/             # API Gateway (ASP.NET Core)
+├── Aspire/                 # Infrastructure resource environment setup, application orchestration and centralized management
+├── services/               # Core services
+│   ├── Catalog/            # Product management
+│   ├── Inventory/          # Inventory management
+│   ├── Order/				# Order management
+│   ├── Payment/			# Payment processing
+│   ├── Shipping/			# Shipping management
+├── Shared/					# Shared between services
+│   ├── Contracts/          # Public Events, gRPC proto contracts, shared enums/constants
+│   └── Kernel/             # Core abstractions, framework library
+📁 Tests/				    # Testing
+```
 
 ## Architectures and Patterns | Kiến trúc và mẫu thiết kế
 
@@ -245,7 +261,7 @@
   - Catalog/Payment/Shipping baseline domain-functional tests.
   - Aspire E2E project scaffold with smoke and lifecycle-oriented scenarios.
 - Latest reported verification:
-  - `dotnet test EShopMicroservices.sln --filter "Category!=e2e-aspire"`: passed.
+  - `dotnet test EShopMicroservices.slnx --filter "Category!=e2e-aspire"`: passed.
   - Aspire E2E project: compiles and is isolated for dedicated execution lane.
   - Reported test cases passed: **40/40** (E2E business flow: **5/5**, Auth: **8/8**, independent service suites: **27/27**).
 
@@ -309,7 +325,7 @@ Docker Desktop required | Yêu cầu bật sẵn Docker Desktop
 ### Option 2 - Visual Studio + Aspire AppHost | Cách 2 - Visual Studio + Aspire AppHost
 
 **EN**
-1. Open `EShopMicroservices.sln` in Visual Studio.
+1. Open `EShopMicroservices.slnx` in Visual Studio.
 2. Set startup project to `Aspire.AppHost`.
 3. Run with `F5` (or `Ctrl+F5`) to launch the distributed application with Aspire-managed dependencies.
 4. Use Aspire dashboard/console output to inspect service URLs and health.
@@ -320,7 +336,7 @@ dotnet run --project .\src\Aspire.AppHost\Aspire.AppHost.csproj
 ```
 
 **VI**
-1. Mở `EShopMicroservices.sln` bằng Visual Studio.
+1. Mở `EShopMicroservices.slnx` bằng Visual Studio.
 2. Chọn startup project là `Aspire.AppHost`.
 3. Nhấn `F5` (hoặc `Ctrl+F5`) để chạy ứng dụng phân tán với các dependency do Aspire điều phối.
 4. Theo dõi dashboard/console của Aspire để lấy URL service và trạng thái health.

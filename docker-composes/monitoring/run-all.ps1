@@ -9,9 +9,14 @@ $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $composeFile = Join-Path $scriptDir "docker-compose.yml"
+$envFile = Join-Path $scriptDir ".env"
 
 if (-not (Test-Path $composeFile)) {
     throw "Cannot find docker-compose.yml at '$composeFile'."
+}
+
+if (-not (Test-Path $envFile)) {
+    throw "Cannot find .env at '$envFile'. Copy defaults from repo or create it."
 }
 
 function Assert-DockerReady {
@@ -47,8 +52,8 @@ if ($Status) {
     exit 0
 }
 
-Write-Host "Starting monitoring stack..." -ForegroundColor Yellow
-Invoke-Compose @("up", "-d")
+Write-Host "Starting monitoring stack (requires app network from production stack already running)..." -ForegroundColor Yellow
+Invoke-Compose @("up", "-d", "--build")
 
 Write-Host ""
 Write-Host "Monitoring stack is running:" -ForegroundColor Green
