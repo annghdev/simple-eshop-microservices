@@ -73,7 +73,9 @@ services:
     container_name: eshop-apigateway-prod
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
       ConnectionStrings__authdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=authdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
@@ -107,7 +109,9 @@ services:
     container_name: eshop-catalog-prod
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
       ConnectionStrings__catalogdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=catalogdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
@@ -188,7 +192,9 @@ services:
     container_name: eshop-payment-prod
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
       ConnectionStrings__paymentdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=paymentdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672
@@ -213,7 +219,9 @@ services:
     container_name: eshop-shipping-prod
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: ""
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_HTTPS_PORTS: ""
       ConnectionStrings__shippingdb: Host=postgres;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=shippingdb
       ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
       ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672

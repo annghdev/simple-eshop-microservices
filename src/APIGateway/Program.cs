@@ -13,6 +13,7 @@ using Wolverine;
 using Wolverine.Http;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.ConfigureEshopDockerKestrel();
 
 builder.AddServiceDefaults();
 builder.Services.AddWolverineHttp();

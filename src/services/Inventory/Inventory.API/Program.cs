@@ -16,27 +16,9 @@ using Wolverine.Configuration;
 using Wolverine.ErrorHandling;
 using Wolverine.FluentValidation;
 using Wolverine.RabbitMQ;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-
-AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-
-static bool RunningInContainer() =>
-    string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true", StringComparison.OrdinalIgnoreCase);
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    if (RunningInContainer())
-    {
-        options.ListenAnyIP(8080, lo => lo.Protocols = HttpProtocols.Http1);
-        options.ListenAnyIP(8082, lo => lo.Protocols = HttpProtocols.Http2);
-    }
-    else
-    {
-        options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http1AndHttp2);
-    }
-});
+builder.ConfigureEshopDockerKestrel(grpcOnDedicatedPort8082: true);
 
 #region Wolverine + Marten
 
